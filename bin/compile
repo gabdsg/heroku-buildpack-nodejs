@@ -201,3 +201,33 @@ summarize_build | output "$LOG_FILE"
 
 warn_no_start "$LOG_FILE"
 warn_unmet_dep "$LOG_FILE"
+
+set -e
+
+BUILD_DIR=$1
+CACHE_DIR=$2
+
+# config
+OS="linux"
+ARCH="x86_64"
+VERSION="2.4.8"
+
+# package
+PACKAGE_NAME="mongodb-${OS}-${ARCH}-${VERSION}"
+FILE_NAME="${PACKAGE_NAME}.tgz"
+MONGODB_ARCHIVE="http://fastdl.mongodb.org/${OS}/${FILE_NAME}"
+
+mkdir -p $CACHE_DIR
+if ! [ -e $CACHE_DIR/$FILE_NAME ]; then
+  echo "-----> Fetching MongoDB binaries from ${MONGODB_ARCHIVE}"
+  curl $MONGODB_ARCHIVE -s -o $CACHE_DIR/$FILE_NAME
+fi
+
+echo "-----> Extracting MongoDB binaries" 
+mkdir -p $BUILD_DIR/vendor
+tar zxf $CACHE_DIR/$FILE_NAME -C $BUILD_DIR/vendor
+mv $BUILD_DIR/vendor/$PACKAGE_NAME $BUILD_DIR/vendor/mongodb
+mkdir -p $BUILD_DIR/bin
+cd $BUILD_DIR/bin
+ln -s ../vendor/mongodb/bin/* .
+
